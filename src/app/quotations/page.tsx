@@ -73,14 +73,14 @@ export default function QuotationsPage() {
 
           {/* Main content */}
           <section className="rounded-card border border-line bg-surface shadow-sm">
-            <div className="border-b border-line px-8 py-6">
-              <h2 className="flex items-center gap-2.5 text-2xl font-bold text-ink">
+            <div className="border-b border-line px-5 py-5 sm:px-8 sm:py-6">
+              <h2 className="flex items-center gap-2.5 text-xl font-bold text-ink sm:text-2xl">
                 <MapPin className="h-5 w-5 text-brand" />
                 Step 1. 운송 정보 입력
               </h2>
             </div>
 
-            <div className="space-y-10 px-8 py-8">
+            <div className="space-y-8 px-5 py-6 sm:space-y-10 sm:px-8 sm:py-8">
               {/* Cargo route */}
               <Block label="화물 경로">
                 <div className="flex flex-wrap items-center gap-3">
@@ -174,8 +174,8 @@ export default function QuotationsPage() {
             </div>
 
             {/* Actions */}
-            <div className="flex gap-4 border-t border-line px-8 py-6">
-              <button className="flex items-center justify-center gap-1.5 rounded-xl border border-line px-8 py-4 text-sm font-semibold text-ink-soft transition-colors hover:bg-canvas">
+            <div className="flex gap-3 border-t border-line px-5 py-5 sm:gap-4 sm:px-8 sm:py-6">
+              <button className="flex items-center justify-center gap-1.5 rounded-xl border border-line px-6 py-4 text-sm font-semibold text-ink-soft transition-colors hover:bg-canvas sm:px-8">
                 <ChevronLeft className="h-4 w-4" />
                 이전
               </button>

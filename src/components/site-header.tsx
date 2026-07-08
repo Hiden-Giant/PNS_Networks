@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Bell, Box, Plus, Search, User } from "./icons";
+import { Bell, Box, Menu, Plus, Search, User } from "./icons";
 
 const NAV = [
   { label: "스케줄 조회", href: "/" },
@@ -10,12 +10,22 @@ const NAV = [
   { label: "이용 내역", href: "/history" },
 ];
 
-export function SiteHeader() {
+export function SiteHeader({ onMenuOpen }: { onMenuOpen?: () => void }) {
   const pathname = usePathname();
 
   return (
     <header className="sticky top-0 z-40 bg-nav text-white">
-      <div className="flex h-14 items-center gap-6 border-b border-nav-line px-4 lg:px-6">
+      <div className="flex h-14 items-center gap-3 border-b border-nav-line px-4 lg:gap-6 lg:px-6">
+        {/* Mobile menu */}
+        <button
+          type="button"
+          aria-label="메뉴 열기"
+          onClick={onMenuOpen}
+          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-white/70 transition-colors hover:bg-white/10 hover:text-white lg:hidden"
+        >
+          <Menu className="h-5 w-5" />
+        </button>
+
         {/* Brand */}
         <Link href="/" className="flex shrink-0 items-center gap-2.5">
           <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand text-white">
@@ -63,7 +73,7 @@ export function SiteHeader() {
         </div>
 
         {/* Actions */}
-        <div className="ml-auto flex items-center gap-3 sm:ml-0">
+        <div className="ml-auto flex items-center gap-2 sm:ml-0 sm:gap-3">
           <button
             type="button"
             aria-label="Notifications"
@@ -82,7 +92,7 @@ export function SiteHeader() {
           </Link>
           <button
             type="button"
-            className="flex items-center gap-1.5 rounded-lg bg-brand px-3.5 py-2 text-sm font-semibold text-white transition-colors hover:bg-brand-dark"
+            className="flex items-center gap-1.5 rounded-lg bg-brand px-3 py-2 text-sm font-semibold text-white transition-colors hover:bg-brand-dark"
           >
             <Plus className="h-4 w-4" />
             <span className="hidden lg:inline">신규 요청</span>

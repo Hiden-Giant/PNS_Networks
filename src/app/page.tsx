@@ -316,7 +316,7 @@ export default function SchedulesPage() {
               {results.length}건 검색됨
             </span>
           </h2>
-          <div className="flex items-center gap-4">
+          <div className="flex flex-wrap items-center gap-3 sm:gap-4">
             <button className="flex items-center gap-1.5 text-sm font-medium text-brand hover:underline">
               <History className="h-4 w-4" />
               이용 내역 보기
@@ -330,7 +330,8 @@ export default function SchedulesPage() {
 
         {/* Results table */}
         {results.length > 0 ? (
-          <div className="overflow-hidden rounded-card border border-line bg-surface shadow-sm">
+          <div className="overflow-x-auto rounded-card border border-line bg-surface shadow-sm">
+            <div className="min-w-[960px]">
             <div className="grid grid-cols-[80px_1.6fr_1.4fr_1.4fr_1.2fr_1.6fr_120px] gap-4 border-b border-line bg-canvas/70 px-6 py-3">
               {[
                 "운송",
@@ -355,6 +356,7 @@ export default function SchedulesPage() {
                 onSelect={() => setSelectedId(s.id)}
               />
             ))}
+            </div>
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center rounded-card border border-dashed border-line bg-surface p-16 text-center">
@@ -410,7 +412,7 @@ function SearchCard({
   onSearch: () => void;
 }) {
   return (
-    <div className="rounded-card border border-line bg-surface p-7 shadow-sm">
+    <div className="rounded-card border border-line bg-surface p-5 shadow-sm sm:p-7">
       <div className="mb-6 flex flex-wrap items-baseline justify-between gap-2">
         <h2 className="text-xl font-bold text-ink">경로 상세</h2>
         <p className="text-xs text-muted">
@@ -584,8 +586,8 @@ function DetailView({
   const [selectedAddon, setSelectedAddon] = useState("혼적");
   return (
     <div className="mt-6 rounded-card border border-line bg-surface shadow-sm">
-      <div className="flex items-center justify-between border-b border-line px-8 py-5">
-        <h3 className="flex items-center gap-2 text-lg font-bold text-ink">
+      <div className="flex items-center justify-between border-b border-line px-5 py-5 sm:px-8">
+        <h3 className="flex flex-wrap items-center gap-2 text-base font-bold text-ink sm:text-lg">
           상세 보기: {schedule.vessel}
           <span className="data rounded-md bg-info-soft px-2 py-0.5 text-xs font-medium text-info">
             {schedule.carrier}
@@ -600,9 +602,9 @@ function DetailView({
         </button>
       </div>
 
-      <div className="grid gap-8 px-8 py-7 lg:grid-cols-[340px_1fr]">
+      <div className="grid gap-8 px-5 py-6 sm:px-8 sm:py-7 lg:grid-cols-[340px_1fr]">
         {/* Left: route timeline */}
-        <div className="relative border-r border-line pr-8">
+        <div className="relative lg:border-r lg:border-line lg:pr-8">
           <div className="absolute left-[5px] top-3 h-[calc(100%-40px)] w-px border-l border-dashed border-line" />
           <RoutePoint
             color="bg-brand"
