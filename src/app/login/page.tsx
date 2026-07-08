@@ -41,9 +41,10 @@ export default function LoginPage() {
       />
 
       {/* Left: hero visual */}
-      <div className="relative z-10 hidden w-1/2 lg:block">
-        <div className="relative flex h-full flex-col justify-between p-12 text-white">
-          <div className="flex items-center gap-2.5">
+      <div className="relative z-10 hidden w-[64%] lg:block">
+        <div className="relative flex h-full items-start justify-end py-12 pl-12 pr-0 text-white">
+          {/* Brand — top */}
+          <div className="absolute left-12 top-12 flex items-center gap-2.5">
             <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-brand text-white">
               <Box className="h-5 w-5" />
             </span>
@@ -52,7 +53,8 @@ export default function LoginPage() {
             </span>
           </div>
 
-          <div className="max-w-md">
+          {/* Hero copy — top aligned with the login card, scaled to 80% */}
+          <div className="max-w-md origin-top-right scale-[0.8] mt-[calc(50vh-13.5rem)]">
             <span className="data inline-block rounded-md bg-brand px-2.5 py-1 text-[11px] font-bold tracking-wide">
               GLOBAL SCM PLATFORM
             </span>
@@ -68,7 +70,8 @@ export default function LoginPage() {
             </p>
           </div>
 
-          <p className="data text-[11px] text-white/40">
+          {/* Copyright — bottom */}
+          <p className="data absolute bottom-12 left-12 text-[11px] text-white/40">
             © 2024 PNS Networks Enterprise. All rights reserved.
           </p>
         </div>
