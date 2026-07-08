@@ -72,7 +72,7 @@ export default function LoginPage() {
 
           {/* Copyright — bottom */}
           <p className="data absolute bottom-12 left-12 text-[11px] text-white/40">
-            © 2024 PNS Networks Enterprise. All rights reserved.
+            © PNS Networks Enterprise. All rights reserved.
           </p>
         </div>
       </div>

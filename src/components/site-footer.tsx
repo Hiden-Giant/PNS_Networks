@@ -16,7 +16,7 @@ export function SiteFooter() {
             freight forwarding solutions.
           </p>
           <p className="mt-4 text-xs text-muted">
-            © 2024 PNS Networks Enterprise. All rights reserved.
+            © PNS Networks Enterprise. All rights reserved.
           </p>
         </div>
 
