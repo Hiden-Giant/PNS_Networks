@@ -35,7 +35,7 @@ export function MockupPage({
               <p className="mt-2 max-w-2xl text-sm text-muted">{description}</p>
             )}
           </div>
-          {actions && <div className="flex items-center gap-2">{actions}</div>}
+          {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
         </div>
 
         <div className="space-y-8">{children}</div>
@@ -144,7 +144,7 @@ export function DataTable({
         <thead>
           <tr className="border-b border-line">
             {columns.map((c) => (
-              <th key={c} className="eyebrow whitespace-nowrap px-4 py-3">
+              <th key={c} scope="col" className="eyebrow whitespace-nowrap px-4 py-3">
                 {c}
               </th>
             ))}

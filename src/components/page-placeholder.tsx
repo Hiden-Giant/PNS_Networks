@@ -24,7 +24,6 @@ export function PagePlaceholder({
             {title}
           </h1>
         </div>
-
         <div className="flex min-h-[320px] flex-col items-center justify-center rounded-card border border-dashed border-line bg-surface p-12 text-center">
           <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-canvas text-faint">
             <Icon className="h-8 w-8" />
@@ -32,7 +31,7 @@ export function PagePlaceholder({
           <p className="mt-6 text-lg font-semibold text-ink">{title}</p>
           <p className="mt-2 max-w-md text-sm text-muted">{description}</p>
           <span className="data mt-6 rounded-full bg-info-soft px-4 py-1.5 text-xs font-medium text-info">
-            준비 중인 화면입니다
+            화면 구조 준비 완료 · 데이터 연결 예정
           </span>
         </div>
       </main>

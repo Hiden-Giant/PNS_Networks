@@ -1,0 +1,647 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum RecordStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum LocationType {
+  PORT
+  AIRPORT
+  CITY
+}
+
+enum TransportMode {
+  SEA
+  AIR
+  ROAD
+  RAIL
+}
+
+enum CarrierType {
+  OCEAN
+  AIRLINE
+  TRUCKING
+  RAIL
+}
+
+enum ChargeUnit {
+  SHIPMENT
+  KG
+  TON
+  CBM
+  CONTAINER_20
+  CONTAINER_40
+  CONTAINER_40_HC
+}
+
+enum ScheduleStatus {
+  DRAFT
+  UPCOMING
+  ON_SALE
+  HOLD
+  EXPIRED
+  CANCELLED
+}
+
+enum RateSource {
+  MANUAL
+  EXCEL
+  API
+}
+
+enum AdjustmentType {
+  PERCENT
+  FIXED
+}
+
+enum QuoteStatus {
+  DRAFT
+  REVIEW_REQUESTED
+  APPROVED
+  REJECTED
+  SENT
+  NEGOTIATING
+  ACCEPTED
+  DECLINED
+  EXPIRED
+}
+
+enum ApprovalDecision {
+  APPROVED
+  REJECTED
+  CHANGES_REQUESTED
+}
+
+enum DeliveryChannel {
+  EMAIL
+  DOWNLOAD
+}
+
+enum DeliveryStatus {
+  PENDING
+  SENT
+  FAILED
+}
+
+enum IntegrationType {
+  SCHEDULE
+  RATE
+  NEWS
+  EMAIL
+  OTHER
+}
+
+enum RunStatus {
+  RUNNING
+  SUCCEEDED
+  PARTIALLY_SUCCEEDED
+  FAILED
+}
+
+enum ImportStatus {
+  UPLOADED
+  VALIDATING
+  INVALID
+  READY
+  APPLIED
+  FAILED
+}
+
+model Region {
+  id        String       @id @default(cuid())
+  code      String       @unique
+  nameKo    String
+  nameEn    String
+  status    RecordStatus @default(ACTIVE)
+  countries Country[]
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+}
+
+model Country {
+  id        String       @id @default(cuid())
+  iso2      String       @unique @db.Char(2)
+  iso3      String       @unique @db.Char(3)
+  nameKo    String
+  nameEn    String
+  regionId  String
+  region    Region       @relation(fields: [regionId], references: [id])
+  status    RecordStatus @default(ACTIVE)
+  locations Location[]
+  customers Customer[]
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  @@index([regionId, status])
+}
+
+model Location {
+  id                String       @id @default(cuid())
+  countryId         String
+  country           Country      @relation(fields: [countryId], references: [id])
+  type              LocationType
+  code              String       @unique
+  unLocode          String?      @unique
+  iataCode          String?      @unique @db.Char(3)
+  nameKo            String
+  nameEn            String
+  timezone          String
+  status            RecordStatus @default(ACTIVE)
+  originRoutes      Route[]      @relation("RouteOrigin")
+  destinationRoutes Route[]      @relation("RouteDestination")
+  customers         Customer[]
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+
+  @@index([countryId, type, status])
+}
+
+model Carrier {
+  id        String       @id @default(cuid())
+  code      String       @unique
+  scac      String?      @unique
+  iataCode  String?      @unique
+  type      CarrierType
+  nameKo    String
+  nameEn    String
+  status    RecordStatus @default(ACTIVE)
+  schedules Schedule[]
+  rates     Rate[]
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+}
+
+model Currency {
+  code           String          @id @db.Char(3)
+  nameKo         String
+  nameEn         String
+  decimalPlaces  Int             @default(2)
+  rates          Rate[]
+  surcharges     RateSurcharge[]
+  marginRules    MarginRule[]
+  quotations     Quotation[]
+  quotationLines QuotationLine[]
+}
+
+model Incoterm {
+  id            String         @id @default(cuid())
+  code          String
+  version       String
+  description   String
+  status        RecordStatus   @default(ACTIVE)
+  quoteRequests QuoteRequest[]
+  quotations    Quotation[]
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  @@unique([code, version])
+}
+
+model ServiceCode {
+  id          String          @id @default(cuid())
+  code        String          @unique
+  nameKo      String
+  nameEn      String
+  defaultUnit ChargeUnit
+  taxable     Boolean         @default(false)
+  status      RecordStatus    @default(ACTIVE)
+  surcharges  RateSurcharge[]
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+}
+
+model Route {
+  id                   String         @id @default(cuid())
+  code                 String         @unique
+  originId             String
+  origin               Location       @relation("RouteOrigin", fields: [originId], references: [id])
+  destinationId        String
+  destination          Location       @relation("RouteDestination", fields: [destinationId], references: [id])
+  transportMode        TransportMode
+  transshipmentAllowed Boolean        @default(true)
+  status               RecordStatus   @default(ACTIVE)
+  schedules            Schedule[]
+  rates                Rate[]
+  marginRules          MarginRule[]
+  quoteRequests        QuoteRequest[]
+  createdAt            DateTime       @default(now())
+  updatedAt            DateTime       @updatedAt
+
+  @@unique([originId, destinationId, transportMode])
+  @@index([originId, destinationId, status])
+}
+
+model Schedule {
+  id             String          @id @default(cuid())
+  code           String          @unique
+  routeId        String
+  route          Route           @relation(fields: [routeId], references: [id])
+  carrierId      String
+  carrier        Carrier         @relation(fields: [carrierId], references: [id])
+  vesselName     String?
+  voyageNumber   String?
+  flightNumber   String?
+  etd            DateTime
+  eta            DateTime
+  salesOpenAt    DateTime?
+  salesCloseAt   DateTime?
+  status         ScheduleStatus  @default(DRAFT)
+  rates          Rate[]
+  quotationLines QuotationLine[]
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  @@index([routeId, etd, status])
+  @@index([carrierId, etd])
+}
+
+model Rate {
+  id             String          @id @default(cuid())
+  code           String          @unique
+  routeId        String
+  route          Route           @relation(fields: [routeId], references: [id])
+  scheduleId     String?
+  schedule       Schedule?       @relation(fields: [scheduleId], references: [id])
+  carrierId      String?
+  carrier        Carrier?        @relation(fields: [carrierId], references: [id])
+  currencyCode   String
+  currency       Currency        @relation(fields: [currencyCode], references: [code])
+  unit           ChargeUnit
+  buyingPrice    Decimal         @db.Decimal(18, 4)
+  validFrom      DateTime
+  validTo        DateTime
+  source         RateSource
+  sourceRef      String?
+  status         RecordStatus    @default(ACTIVE)
+  surcharges     RateSurcharge[]
+  customerRates  CustomerRate[]
+  quotationLines QuotationLine[]
+  createdById    String?
+  createdBy      User?           @relation("RateCreatedBy", fields: [createdById], references: [id])
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  @@index([routeId, validFrom, validTo, status])
+  @@index([scheduleId, status])
+}
+
+model RateSurcharge {
+  id            String      @id @default(cuid())
+  rateId        String
+  rate          Rate        @relation(fields: [rateId], references: [id], onDelete: Cascade)
+  serviceCodeId String
+  serviceCode   ServiceCode @relation(fields: [serviceCodeId], references: [id])
+  currencyCode  String
+  currency      Currency    @relation(fields: [currencyCode], references: [code])
+  unit          ChargeUnit
+  amount        Decimal     @db.Decimal(18, 4)
+  required      Boolean     @default(true)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@unique([rateId, serviceCodeId, unit])
+}
+
+model MarginRule {
+  id             String         @id @default(cuid())
+  name           String
+  routeId        String?
+  route          Route?         @relation(fields: [routeId], references: [id])
+  customerId     String?
+  customer       Customer?      @relation(fields: [customerId], references: [id])
+  transportMode  TransportMode?
+  adjustmentType AdjustmentType
+  value          Decimal        @db.Decimal(18, 4)
+  currencyCode   String?
+  currency       Currency?      @relation(fields: [currencyCode], references: [code])
+  priority       Int            @default(100)
+  validFrom      DateTime
+  validTo        DateTime
+  status         RecordStatus   @default(ACTIVE)
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  @@index([routeId, customerId, validFrom, validTo, status])
+}
+
+model Customer {
+  id              String            @id @default(cuid())
+  code            String            @unique
+  legalName       String
+  businessNumber  String?           @unique
+  countryId       String?
+  country         Country?          @relation(fields: [countryId], references: [id])
+  locationId      String?
+  location        Location?         @relation(fields: [locationId], references: [id])
+  grade           String?
+  assignedSalesId String?
+  assignedSales   User?             @relation("AssignedSales", fields: [assignedSalesId], references: [id])
+  status          RecordStatus      @default(ACTIVE)
+  contacts        CustomerContact[]
+  marginRules     MarginRule[]
+  customerRates   CustomerRate[]
+  quoteRequests   QuoteRequest[]
+  quotations      Quotation[]
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  @@index([assignedSalesId, status])
+}
+
+model CustomerContact {
+  id         String   @id @default(cuid())
+  customerId String
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  name       String
+  email      String?
+  phone      String?
+  title      String?
+  isPrimary  Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([customerId, isPrimary])
+}
+
+model CustomerRate {
+  id             String         @id @default(cuid())
+  customerId     String
+  customer       Customer       @relation(fields: [customerId], references: [id])
+  rateId         String
+  rate           Rate           @relation(fields: [rateId], references: [id])
+  adjustmentType AdjustmentType
+  value          Decimal        @db.Decimal(18, 4)
+  validFrom      DateTime
+  validTo        DateTime
+  status         RecordStatus   @default(ACTIVE)
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  @@unique([customerId, rateId, validFrom])
+}
+
+model QuoteRequest {
+  id               String      @id @default(cuid())
+  requestNumber    String      @unique
+  customerId       String
+  customer         Customer    @relation(fields: [customerId], references: [id])
+  routeId          String?
+  route            Route?      @relation(fields: [routeId], references: [id])
+  incotermId       String?
+  incoterm         Incoterm?   @relation(fields: [incotermId], references: [id])
+  cargoDescription String?
+  cargoUnit        ChargeUnit?
+  cargoQuantity    Decimal?    @db.Decimal(18, 4)
+  requestedEtd     DateTime?
+  requestedById    String
+  requestedBy      User        @relation("QuoteRequestedBy", fields: [requestedById], references: [id])
+  assignedToId     String?
+  assignedTo       User?       @relation("QuoteAssignedTo", fields: [assignedToId], references: [id])
+  quotations       Quotation[]
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+
+  @@index([customerId, createdAt])
+  @@index([assignedToId, createdAt])
+}
+
+model Quotation {
+  id              String              @id @default(cuid())
+  quotationNumber String
+  version         Int                 @default(1)
+  quoteRequestId  String?
+  quoteRequest    QuoteRequest?       @relation(fields: [quoteRequestId], references: [id])
+  customerId      String
+  customer        Customer            @relation(fields: [customerId], references: [id])
+  incotermId      String?
+  incoterm        Incoterm?           @relation(fields: [incotermId], references: [id])
+  currencyCode    String
+  currency        Currency            @relation(fields: [currencyCode], references: [code])
+  validUntil      DateTime
+  status          QuoteStatus         @default(DRAFT)
+  customerMemo    String?
+  internalMemo    String?
+  createdById     String
+  createdBy       User                @relation("QuotationCreatedBy", fields: [createdById], references: [id])
+  lines           QuotationLine[]
+  snapshots       QuotationSnapshot[]
+  approvals       QuotationApproval[]
+  deliveries      QuotationDelivery[]
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+
+  @@unique([quotationNumber, version])
+  @@index([customerId, status, createdAt])
+}
+
+model QuotationLine {
+  id              String     @id @default(cuid())
+  quotationId     String
+  quotation       Quotation  @relation(fields: [quotationId], references: [id], onDelete: Cascade)
+  scheduleId      String?
+  schedule        Schedule?  @relation(fields: [scheduleId], references: [id])
+  rateId          String?
+  rate            Rate?      @relation(fields: [rateId], references: [id])
+  description     String
+  unit            ChargeUnit
+  quantity        Decimal    @db.Decimal(18, 4)
+  currencyCode    String
+  currency        Currency   @relation(fields: [currencyCode], references: [code])
+  buyingAmount    Decimal    @db.Decimal(18, 4)
+  surchargeAmount Decimal    @db.Decimal(18, 4)
+  marginAmount    Decimal    @db.Decimal(18, 4)
+  sellingAmount   Decimal    @db.Decimal(18, 4)
+  sortOrder       Int        @default(0)
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+
+  @@index([quotationId, sortOrder])
+}
+
+model QuotationSnapshot {
+  id          String    @id @default(cuid())
+  quotationId String
+  quotation   Quotation @relation(fields: [quotationId], references: [id], onDelete: Cascade)
+  kind        String
+  payload     Json
+  createdAt   DateTime  @default(now())
+
+  @@index([quotationId, createdAt])
+}
+
+model QuotationApproval {
+  id          String           @id @default(cuid())
+  quotationId String
+  quotation   Quotation        @relation(fields: [quotationId], references: [id], onDelete: Cascade)
+  approverId  String
+  approver    User             @relation(fields: [approverId], references: [id])
+  decision    ApprovalDecision
+  comment     String?
+  decidedAt   DateTime         @default(now())
+
+  @@index([quotationId, decidedAt])
+}
+
+model QuotationDelivery {
+  id          String          @id @default(cuid())
+  quotationId String
+  quotation   Quotation       @relation(fields: [quotationId], references: [id], onDelete: Cascade)
+  channel     DeliveryChannel
+  recipient   String
+  status      DeliveryStatus  @default(PENDING)
+  error       String?
+  deliveredAt DateTime?
+  createdAt   DateTime        @default(now())
+
+  @@index([quotationId, createdAt])
+}
+
+model QuotationTemplate {
+  id          String       @id @default(cuid())
+  name        String
+  locale      String       @default("ko-KR")
+  header      Json?
+  body        Json
+  footer      Json?
+  status      RecordStatus @default(ACTIVE)
+  createdById String
+  createdBy   User         @relation(fields: [createdById], references: [id])
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+}
+
+model User {
+  id                String              @id @default(cuid())
+  email             String              @unique
+  name              String
+  department        String?
+  passwordHash      String?
+  status            RecordStatus        @default(ACTIVE)
+  lastLoginAt       DateTime?
+  userRoles         UserRole[]
+  assignedCustomers Customer[]          @relation("AssignedSales")
+  createdRates      Rate[]              @relation("RateCreatedBy")
+  requestedQuotes   QuoteRequest[]      @relation("QuoteRequestedBy")
+  assignedQuotes    QuoteRequest[]      @relation("QuoteAssignedTo")
+  createdQuotations Quotation[]         @relation("QuotationCreatedBy")
+  approvals         QuotationApproval[]
+  templates         QuotationTemplate[]
+  auditLogs         AuditLog[]
+  importBatches     ImportBatch[]
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+}
+
+model Role {
+  id          String           @id @default(cuid())
+  code        String           @unique
+  name        String
+  description String?
+  system      Boolean          @default(false)
+  userRoles   UserRole[]
+  permissions RolePermission[]
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+}
+
+model Permission {
+  id          String           @id @default(cuid())
+  resource    String
+  action      String
+  description String?
+  roles       RolePermission[]
+
+  @@unique([resource, action])
+}
+
+model UserRole {
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  roleId     String
+  role       Role     @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  assignedAt DateTime @default(now())
+
+  @@id([userId, roleId])
+}
+
+model RolePermission {
+  roleId       String
+  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permissionId String
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permissionId])
+}
+
+model IntegrationProvider {
+  id        String           @id @default(cuid())
+  code      String           @unique
+  name      String
+  type      IntegrationType
+  baseUrl   String?
+  secretRef String?
+  schedule  String?
+  status    RecordStatus     @default(ACTIVE)
+  runs      IntegrationRun[]
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+}
+
+model IntegrationRun {
+  id            String              @id @default(cuid())
+  providerId    String
+  provider      IntegrationProvider @relation(fields: [providerId], references: [id])
+  status        RunStatus           @default(RUNNING)
+  startedAt     DateTime            @default(now())
+  finishedAt    DateTime?
+  receivedCount Int                 @default(0)
+  appliedCount  Int                 @default(0)
+  errorCount    Int                 @default(0)
+  errorSummary  String?
+  rawPayloadRef String?
+
+  @@index([providerId, startedAt])
+}
+
+model ImportBatch {
+  id             String       @id @default(cuid())
+  fileName       String
+  storageRef     String
+  entityType     String
+  status         ImportStatus @default(UPLOADED)
+  totalRows      Int          @default(0)
+  validRows      Int          @default(0)
+  invalidRows    Int          @default(0)
+  errorReportRef String?
+  uploadedById   String
+  uploadedBy     User         @relation(fields: [uploadedById], references: [id])
+  createdAt      DateTime     @default(now())
+  appliedAt      DateTime?
+
+  @@index([entityType, createdAt])
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  actorId    String?
+  actor      User?    @relation(fields: [actorId], references: [id])
+  action     String
+  resource   String
+  resourceId String?
+  before     Json?
+  after      Json?
+  ipAddress  String?
+  userAgent  String?
+  occurredAt DateTime @default(now())
+
+  @@index([resource, resourceId, occurredAt])
+  @@index([actorId, occurredAt])
+}

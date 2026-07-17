@@ -41,6 +41,22 @@ body {
   font-feature-settings: "cv11", "ss01";
 }
 
+:where(a, button, input, select, textarea):focus-visible {
+  outline: 3px solid var(--color-info);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
 /* Eyebrow / label text — the techy uppercase mono labels used across the design */
 .eyebrow {
   font-family: var(--font-mono);
@@ -55,4 +71,22 @@ body {
 .data {
   font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
+}
+
+.form-control {
+  width: 100%;
+  border: 1px solid var(--color-line);
+  border-radius: 0.75rem;
+  background: var(--color-surface);
+  padding: 0.625rem 0.75rem;
+  color: var(--color-ink);
+  font-size: 0.875rem;
+  font-weight: 400;
+  outline: none;
+  transition: border-color 150ms, box-shadow 150ms;
+}
+
+.form-control:focus {
+  border-color: var(--color-info);
+  box-shadow: 0 0 0 3px var(--color-info-soft);
 }

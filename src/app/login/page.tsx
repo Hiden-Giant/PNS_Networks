@@ -1,35 +1,26 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import Image from "next/image";
+import { useActionState, useState } from "react";
 import { Box, User, Key, Eye, EyeOff } from "@/components/icons";
+import { login, type LoginState } from "./actions";
 
-const TEST_ID = "pns@pns.com";
-const TEST_PW = "1234!";
+const INITIAL_STATE: LoginState = {};
 
 export default function LoginPage() {
-  const router = useRouter();
-  const [id, setId] = useState(TEST_ID);
-  const [pw, setPw] = useState(TEST_PW);
   const [remember, setRemember] = useState(true);
   const [showPw, setShowPw] = useState(false);
-  const [loading, setLoading] = useState(false);
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    // 목업 로그인: 자격 증명 검증 없이 전사 현황으로 랜딩
-    setTimeout(() => {
-      router.push("/dashboard");
-    }, 500);
-  };
+  const [state, formAction, pending] = useActionState(login, INITIAL_STATE);
 
   return (
     <div className="relative flex min-h-screen w-full overflow-hidden bg-navy">
       {/* Full-screen hero background */}
-      <img
+      <Image
         src="/login-hero.jpg"
         alt="PNS Networks 컨테이너 선박"
+        fill
+        priority
+        sizes="100vw"
         className="absolute inset-0 h-full w-full object-cover"
       />
       <div
@@ -96,7 +87,7 @@ export default function LoginPage() {
             물류 관리 콘솔에 접속하려면 계정 정보를 입력하세요.
           </p>
 
-          <form onSubmit={handleSubmit} className="mt-6 space-y-5">
+          <form action={formAction} className="mt-6 space-y-5" noValidate>
             <div>
               <label htmlFor="login-id" className="eyebrow mb-2 flex items-center gap-1.5">
                 <User className="h-3.5 w-3.5" />
@@ -104,12 +95,19 @@ export default function LoginPage() {
               </label>
               <input
                 id="login-id"
-                type="text"
-                value={id}
-                onChange={(e) => setId(e.target.value)}
-                placeholder="이메일 또는 아이디"
+                name="email"
+                type="email"
+                autoComplete="username"
+                placeholder="이메일"
+                aria-invalid={Boolean(state.fieldErrors?.email)}
+                aria-describedby={state.fieldErrors?.email ? "login-id-error" : undefined}
                 className="data w-full rounded-xl border border-line bg-canvas/50 px-4 py-3 text-sm text-ink outline-none transition focus:border-brand focus:bg-surface"
               />
+              {state.fieldErrors?.email?.map((error) => (
+                <p key={error} id="login-id-error" className="mt-2 text-xs text-brand">
+                  {error}
+                </p>
+              ))}
             </div>
 
             <div>
@@ -120,10 +118,12 @@ export default function LoginPage() {
               <div className="relative">
                 <input
                   id="login-pw"
+                  name="password"
                   type={showPw ? "text" : "password"}
-                  value={pw}
-                  onChange={(e) => setPw(e.target.value)}
+                  autoComplete="current-password"
                   placeholder="비밀번호"
+                  aria-invalid={Boolean(state.fieldErrors?.password)}
+                  aria-describedby={state.fieldErrors?.password ? "login-pw-error" : undefined}
                   className="data w-full rounded-xl border border-line bg-canvas/50 px-4 py-3 pr-11 text-sm text-ink outline-none transition focus:border-brand focus:bg-surface"
                 />
                 <button
@@ -140,11 +140,17 @@ export default function LoginPage() {
                   )}
                 </button>
               </div>
+              {state.fieldErrors?.password?.map((error) => (
+                <p key={error} id="login-pw-error" className="mt-2 text-xs text-brand">
+                  {error}
+                </p>
+              ))}
             </div>
 
             <div className="flex items-center justify-between">
               <label className="flex cursor-pointer items-center gap-2 text-sm text-ink-soft">
                 <input
+                  name="remember"
                   type="checkbox"
                   checked={remember}
                   onChange={(e) => setRemember(e.target.checked)}
@@ -157,12 +163,18 @@ export default function LoginPage() {
               </button>
             </div>
 
+            {state.message && (
+              <p role="alert" className="rounded-lg bg-brand-soft px-4 py-3 text-sm text-brand-dark">
+                {state.message}
+              </p>
+            )}
+
             <button
               type="submit"
-              disabled={loading}
+              disabled={pending}
               className="flex w-full items-center justify-center gap-2 rounded-xl bg-brand px-6 py-3.5 text-base font-semibold text-white shadow-lg shadow-brand/25 transition-colors hover:bg-brand-dark disabled:opacity-70"
             >
-              {loading ? "로그인 중..." : "로그인"}
+              {pending ? "로그인 중..." : "로그인"}
             </button>
           </form>
 
