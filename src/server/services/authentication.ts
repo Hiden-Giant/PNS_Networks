@@ -30,3 +30,20 @@ export async function authenticateUser(email: string, password: string) {
     name: user.name,
   };
 }
+
+export async function getBypassLoginUser() {
+  const user = await getDb().user.findFirst({
+    where: {
+      status: "ACTIVE",
+      userRoles: { some: { role: { code: "system-admin" } } },
+    },
+    orderBy: { createdAt: "asc" },
+    select: {
+      id: true,
+      email: true,
+      name: true,
+    },
+  });
+
+  return user;
+}

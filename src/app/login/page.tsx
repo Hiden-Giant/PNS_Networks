@@ -84,7 +84,7 @@ export default function LoginPage() {
           <p className="eyebrow">WELCOME BACK</p>
           <h2 className="mt-2 text-3xl font-bold text-ink">로그인</h2>
           <p className="mt-2 text-sm text-muted">
-            물류 관리 콘솔에 접속하려면 계정 정보를 입력하세요.
+            임시 접근 모드입니다. 아무 값이나 입력해 관리자 화면에 접속할 수 있습니다.
           </p>
 
           <form action={formAction} className="mt-6 space-y-5" noValidate>
@@ -96,9 +96,9 @@ export default function LoginPage() {
               <input
                 id="login-id"
                 name="email"
-                type="email"
+                type="text"
                 autoComplete="username"
-                placeholder="이메일"
+                placeholder="아무 값이나 입력"
                 aria-invalid={Boolean(state.fieldErrors?.email)}
                 aria-describedby={state.fieldErrors?.email ? "login-id-error" : undefined}
                 className="data w-full rounded-xl border border-line bg-canvas/50 px-4 py-3 text-sm text-ink outline-none transition focus:border-brand focus:bg-surface"
@@ -121,7 +121,7 @@ export default function LoginPage() {
                   name="password"
                   type={showPw ? "text" : "password"}
                   autoComplete="current-password"
-                  placeholder="비밀번호"
+                  placeholder="아무 값이나 입력"
                   aria-invalid={Boolean(state.fieldErrors?.password)}
                   aria-describedby={state.fieldErrors?.password ? "login-pw-error" : undefined}
                   className="data w-full rounded-xl border border-line bg-canvas/50 px-4 py-3 pr-11 text-sm text-ink outline-none transition focus:border-brand focus:bg-surface"
