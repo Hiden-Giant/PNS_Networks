@@ -1,8 +1,18 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { getBypassLoginUser } from "@/server/services/authentication";
+import { z } from "zod";
+import { authenticateUser } from "@/server/services/authentication";
 import { createSession, deleteSession } from "@/server/session";
+
+const loginSchema = z.object({
+  email: z.email("올바른 이메일 주소를 입력하세요.").trim().toLowerCase(),
+  password: z
+    .string()
+    .min(8, "비밀번호는 8자 이상이어야 합니다.")
+    .max(128, "비밀번호가 너무 깁니다."),
+  remember: z.boolean(),
+});
 
 export type LoginState = {
   fieldErrors?: {
@@ -16,9 +26,19 @@ export async function login(
   _previousState: LoginState,
   formData: FormData,
 ): Promise<LoginState> {
+  const parsed = loginSchema.safeParse({
+    email: formData.get("email"),
+    password: formData.get("password"),
+    remember: formData.get("remember") === "on",
+  });
+
+  if (!parsed.success) {
+    return { fieldErrors: parsed.error.flatten().fieldErrors };
+  }
+
   let user;
   try {
-    user = await getBypassLoginUser();
+    user = await authenticateUser(parsed.data.email, parsed.data.password);
   } catch (error) {
     console.error(error);
     return {
@@ -27,10 +47,10 @@ export async function login(
   }
 
   if (!user) {
-    return { message: "로그인에 사용할 활성 관리자 계정이 없습니다." };
+    return { message: "이메일 또는 비밀번호를 확인하세요." };
   }
 
-  await createSession(user.id, { persistent: formData.get("remember") === "on" });
+  await createSession(user.id, { persistent: parsed.data.remember });
   redirect("/dashboard");
 }
 
